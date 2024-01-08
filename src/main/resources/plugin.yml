@@ -1,0 +1,5 @@
+name: FantasyAPI
+version: '${project.version}'
+main: me.bottdev.fantasyapi.FantasyAPI
+api-version: '1.20'
+softdepend: [ProtocolLib, WorldEdit, Citizens]
