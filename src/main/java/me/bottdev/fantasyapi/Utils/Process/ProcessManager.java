@@ -18,18 +18,23 @@ import java.util.UUID;
 public abstract class ProcessManager {
 
     private final FantasyAPI plugin = FantasyAPI.getPlugin(FantasyAPI.class);
-    private static final HashSet<UUID> process = new HashSet<>();
+    public static final HashSet<UUID> process = new HashSet<>();
+    public static final HashSet<UUID> cancel = new HashSet<>();
+
 
     private final Entity entity;
     private final int time;
     private final double slow;
+    private final boolean cancellable;
+
 
     private int timer = 0;
 
-    public ProcessManager(Entity entity, int time, double slow) {
+    public ProcessManager(Entity entity, int time, double slow, boolean cancellable) {
         this.entity = entity;
         this.time = time;
         this.slow = slow;
+        this.cancellable = cancellable;
 
         Start();
     }
@@ -75,6 +80,17 @@ public abstract class ProcessManager {
                     sendActionBar(p);
                 }
 
+                if (cancellable && cancel.contains(entity.getUniqueId())) {
+                    if (entity instanceof Player p) {
+                        p.spigot().sendMessage(ChatMessageType.ACTION_BAR, TextComponent.fromLegacyText(" "));
+                    }
+                    process.remove(entity.getUniqueId());
+                    attributesUtils.resetAttribute(entity, FantasyAttribute.MOVE_SPEED);
+                    onCancel();
+                    this.cancel();
+                    return;
+                }
+
                 onTick();
             }
 
@@ -105,6 +121,8 @@ public abstract class ProcessManager {
     public abstract void onStart();
 
     public abstract void onTick();
+
+    public abstract void onCancel();
 
 
 }
