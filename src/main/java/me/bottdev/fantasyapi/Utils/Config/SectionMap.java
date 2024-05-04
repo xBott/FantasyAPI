@@ -20,6 +20,13 @@ public class SectionMap {
         loadFromFolder(this.path);
     }
 
+    public SectionMap(HashMap<String, ConfigurationSection> loaded, String namespace, String path) {
+        this.loaded = loaded;
+        this.path = "plugins/" + namespace + "/" + path;
+
+        loadFromFolder(this.path);
+    }
+
     private void loadFromFolder(String path) {
         try {
 

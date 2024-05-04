@@ -2,6 +2,8 @@ package me.bottdev.fantasyapi.Utils;
 
 import me.bottdev.fantasyapi.FantasyAPI;
 import me.bottdev.fantasyapi.Utils.Config.ConfigUtils;
+import net.kyori.adventure.text.TextComponent;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import org.bukkit.ChatColor;
 import org.bukkit.Location;
 import org.bukkit.Material;
@@ -72,6 +74,10 @@ public class Utils {
         return ChatColor.translateAlternateColorCodes('&',
                 translateHexColorCodes("<#", ">",
                         translateGradientColorCodes("<gradient:", ">", s)));
+    }
+
+    public TextComponent getTextComponent(String str) {
+        return LegacyComponentSerializer.legacyAmpersand().deserialize(str);
     }
 
     public Color hex2Rgb(String colorStr) {

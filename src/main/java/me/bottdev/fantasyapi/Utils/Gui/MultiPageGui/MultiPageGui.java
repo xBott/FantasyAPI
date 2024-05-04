@@ -10,13 +10,18 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 public class MultiPageGui {
+
+    private long cd;
+
+    private final HashMap<Integer, ItemStack> old_contents = new HashMap<>();
 
     protected final FantasyAPI plugin = FantasyAPI.getPlugin(FantasyAPI.class);
     private final MPGuiManager mpgManager = new MPGuiManager();
@@ -36,6 +41,8 @@ public class MultiPageGui {
     protected int content_length;
 
     protected int current_page;
+
+    protected BukkitTask task;
 
     public MultiPageGui(Player p, Configuration cfg) {
 
@@ -63,7 +70,7 @@ public class MultiPageGui {
     }
 
     public int getMaxPage() {
-        return  (int)Math.ceil((double) content_length / content_slots_length) - 1;
+        return  Math.max(0, (int)Math.ceil((double) content_length / content_slots_length) - 1);
     }
 
 
@@ -84,18 +91,15 @@ public class MultiPageGui {
     protected void createInventory() {
         try {
 
-            gui = Bukkit.createInventory(null, size, plugin.utils.setColors(title));
+            gui = Bukkit.createInventory(null, size, FantasyAPI.utils.setColors(title));
 
             this.content_slots_length = slots.length;
             this.content_length = getContents().size();
 
-            Update(0);
-
-
         } catch (Exception ex) {
             ex.printStackTrace();
 
-            gui = Bukkit.createInventory(null, 9, plugin.utils.setColors("&cError"));
+            gui = Bukkit.createInventory(null, 9, FantasyAPI.utils.setColors("&cError"));
         }
     }
 
@@ -111,48 +115,47 @@ public class MultiPageGui {
 
         List<MPGContentItem> contentItems = getContents();
         if (contentItems.isEmpty()) return;
+
+        if (cd > System.currentTimeMillis()) return;
+        cd = System.currentTimeMillis() + 50;
+
+        Bukkit.getScheduler().runTaskLater(plugin, this::setPersistentItems, 2);
+
         int item_index = content_slots_length * page;
+        int last_index = 0;
 
         for (int i = 0; i < content_slots_length; i++) {
-            if (item_index >= content_length) break;
-            ItemStack oldItem = gui.getItem(i);
-            ItemStack newItem = contentItems.get(item_index).getItemStack();
+            if (item_index >= content_length) {
+                break;
+            }
 
-            if (oldItem != newItem) {
-                gui.setItem(slots[i], newItem);
+            ItemStack newItem = contentItems.get(item_index).getItemStack();
+            ItemStack oldItem = old_contents.getOrDefault(slots[i], new ItemStack(Material.AIR));
+            int slot = slots[i];
+
+
+
+            if (!oldItem.isSimilar(newItem)) {
+                gui.setItem(slot, newItem);
+                old_contents.put(slot, newItem);
+                last_index = slot;
+
             }
 
             item_index++;
         }
 
-        setPersistentItems(true);
+        if (page == getMaxPage()) {
+
+            for (int i = last_index + 1; i < content_slots_length; i++) {
+
+                gui.setItem(i, new ItemStack(Material.AIR));
+                old_contents.put(i, new ItemStack(Material.AIR));
+            }
+
+        }
     }
 
-    @SuppressWarnings("deprecation")
-    private boolean compareItems(ItemStack oldItem, ItemStack newItem) {
-
-        if (oldItem == null) return true;
-        if (newItem == null) return true;
-
-        ItemMeta oldMeta = oldItem.getItemMeta();
-        String oldName = oldMeta.getDisplayName();
-        List<String> oldLore = oldMeta.getLore();
-        int oldCMD = oldMeta.getCustomModelData();
-        Material oldMaterial = oldItem.getType();
-
-        ItemMeta newMeta = newItem.getItemMeta();
-        String newName = newMeta.getDisplayName();
-        List<String> newLore = newMeta.getLore();
-        int newCMD = newMeta.getCustomModelData();
-        Material newMaterial = newItem.getType();
-
-        if (!oldName.equalsIgnoreCase(newName)) return true;
-        if (oldLore != newLore) return true;
-        if (oldCMD != newCMD) return true;
-        if (oldMaterial != newMaterial) return true;
-
-        return false;
-    }
 
     private void clearContents() {
         for (int slot : slots) {
@@ -173,50 +176,48 @@ public class MultiPageGui {
         }
     }
 
-    public void setPersistentItems() {
-        setPersistentItems(false);
-    }
 
-    public void setPersistentItems(boolean smart) {
+    public void setPersistentItems() {
 
         int max_page = Math.max(0, (int)Math.ceil((double) content_length / content_slots_length) - 1);
         List<MPGContentItem> replacedArrows = getReplacedArrows();
 
         for (MPGContentItem item : getPersistentItems()) {
 
-            if (smart) {
-                if (gui.getItem(item.getSlot()) == item.getItemStack()) continue;
-            }
-
             String id = item.getId();
 
-            if ((current_page == 0 && id.equalsIgnoreCase("previous"))) {
-                if (mode == MPGuiMode.REPLACE_BUTTONS) {
-                    gui.setItem(replacedArrows.get(0).getSlot(), replacedArrows.get(0).getItemStack());
-                }
-                continue;
-            }
-            if ((current_page == max_page && id.equalsIgnoreCase("next"))) {
-                if (mode == MPGuiMode.REPLACE_BUTTONS) {
-                    gui.setItem(replacedArrows.get(1).getSlot(), replacedArrows.get(1).getItemStack());
-                }
-                continue;
-            }
-            if (getContents().isEmpty()) {
-                if (id.equalsIgnoreCase("previous")) {
-                    if (mode == MPGuiMode.REPLACE_BUTTONS) {
-                        gui.setItem(replacedArrows.get(0).getSlot(), replacedArrows.get(0).getItemStack());
+            switch (id) {
+
+                case "previous", "previous_r" -> {
+
+                    if (mode == MPGuiMode.REPLACE_BUTTONS && (current_page == 0 || getContents().isEmpty())) {
+                        gui.setItem(item.getSlot(), replacedArrows.get(1).getItemStack());
+                        break;
                     }
-                    continue;
+
+                    gui.setItem(item.getSlot(), item.getItemStack());
+
                 }
-                else if (id.equalsIgnoreCase("next")) {
-                    if (mode == MPGuiMode.REPLACE_BUTTONS) {
-                        gui.setItem(replacedArrows.get(1).getSlot(), replacedArrows.get(1).getItemStack());
+
+                case "next", "next_r" -> {
+
+                    if (mode == MPGuiMode.REPLACE_BUTTONS && (current_page == max_page || getContents().isEmpty())) {
+                        gui.setItem(item.getSlot(), replacedArrows.get(0).getItemStack());
+                        break;
                     }
-                    continue;
+
+                    gui.setItem(item.getSlot(), item.getItemStack());
+
+
+                }
+
+                default -> {
+
+                    gui.setItem(item.getSlot(), item.getItemStack());
+                    old_contents.put(item.getSlot(), item.getItemStack());
                 }
             }
-            gui.setItem(item.getSlot(), item.getItemStack());
+
         }
     }
 
@@ -224,13 +225,36 @@ public class MultiPageGui {
         return current_page;
     }
 
+    @SuppressWarnings("unused")
     public void Open(int page, boolean update) {
         try {
 
             createInventory();
 
-            Update(page);
             p.openInventory(gui);
+
+            Update(page);
+
+            if (update) Runnable();
+
+            mpgManager.setGui(p, this);
+
+            plugin.sounds.clientSound(p, Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.0f);
+
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+    }
+
+    @SuppressWarnings("unused")
+    public void smartOpen(int page, boolean update) {
+        try {
+
+            createInventory();
+
+            p.openInventory(gui);
+
+            smartUpdate(page);
 
             if (update) Runnable();
 
@@ -245,13 +269,13 @@ public class MultiPageGui {
 
 
     private void Runnable() {
-        new BukkitRunnable() {
+        task = new BukkitRunnable() {
 
             @Override
             public void run() {
                 try {
 
-                    if (p.isDead() || !p.isValid() || !p.isOnline()) {
+                    if (p.isDead() || !p.isValid() || !p.isOnline() || !mpgManager.isOpen(p)) {
                         this.cancel();
                         return;
                     }
@@ -263,7 +287,11 @@ public class MultiPageGui {
                 }
             }
 
-        }.runTaskTimer(plugin, 0, 2);
+        }.runTaskTimerAsynchronously(plugin, 0, 2);
+    }
+
+    public BukkitTask getTask() {
+        return task;
     }
 
     public void Close() {

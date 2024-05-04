@@ -29,13 +29,14 @@ public class MPGuiListener implements Listener {
         Player p = (Player) e.getWhoClicked();
         if (guiManager.isOpen(p) && !new GuiManager().isOpen(p)) {
 
+            e.setCancelled(true);
+
             MultiPageGui gui = guiManager.getGui(p);
 
             ItemStack clicked = e.getCurrentItem();
             if (p.getInventory().contains(clicked)) return;
             if (clicked == null || clicked.getType() == Material.AIR) return;
 
-            e.setCancelled(true);
 
             ItemMeta meta = clicked.getItemMeta();
             String id = meta.getPersistentDataContainer().getOrDefault(new NamespacedKey(plugin, "id"), PersistentDataType.STRING, "none");
@@ -43,9 +44,9 @@ public class MPGuiListener implements Listener {
             int page = gui.getPage();
 
             switch (id) {
-                case "previous" -> gui.Update(Math.max(page - 1, 0));
+                case "previous" -> gui.smartUpdate(Math.max(page - 1, 0));
 
-                case "next" -> gui.Update(Math.min(page + 1, gui.getMaxPage()));
+                case "next" -> gui.smartUpdate(Math.min(page + 1, gui.getMaxPage()));
 
                 case "close" -> gui.Close();
             }

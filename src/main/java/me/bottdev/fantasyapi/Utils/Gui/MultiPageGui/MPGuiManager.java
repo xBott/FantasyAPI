@@ -17,7 +17,7 @@ public class MPGuiManager {
 
     private final LoreManager loreManager = new LoreManager();
 
-    public static HashMap<UUID, MultiPageGui> gui_open = new HashMap<>();
+    public static final HashMap<UUID, MultiPageGui> gui_open = new HashMap<>();
 
     public boolean isOpen(Player p) {
         return gui_open.containsKey(p.getUniqueId());

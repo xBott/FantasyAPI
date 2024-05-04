@@ -18,7 +18,16 @@ public class ParticleUtils {
 
             try {
 
-                String[] options = part.split(":");
+                String[] options = null;
+
+
+                if (part.contains(";")) {
+                    options = part.split(";");
+                } else if (part.contains(":")) {
+                    options = part.split(":");
+                }
+
+                assert options != null;
 
                 Particle particle = Particle.valueOf(options[0]);
                 int count = Integer.parseInt(options[1]);
@@ -36,6 +45,8 @@ public class ParticleUtils {
 
                 if (FantasyAPI.utils.getRandomNumber(0, 100) > (100 - chance) && loc != null)
                     loc.getWorld().spawnParticle(particle, loc, count, x, y, z, speed);
+
+
 
             } catch (Exception ex) {
                 ex.printStackTrace();

@@ -17,7 +17,7 @@ public class GuiManager {
 
     private final LoreManager loreManager = new LoreManager();
 
-    public static HashMap<UUID, GuiTemplate> gui_open = new HashMap<>();
+    public static final HashMap<UUID, GuiTemplate> gui_open = new HashMap<>();
 
     public boolean isOpen(Player p) {
         return gui_open.containsKey(p.getUniqueId());

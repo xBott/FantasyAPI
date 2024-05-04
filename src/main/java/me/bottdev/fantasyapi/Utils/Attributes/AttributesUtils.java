@@ -1,6 +1,7 @@
 package me.bottdev.fantasyapi.Utils.Attributes;
 
 import me.bottdev.fantasyapi.FantasyAPI;
+import org.bukkit.Bukkit;
 import org.bukkit.attribute.Attribute;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.LivingEntity;
@@ -30,6 +31,19 @@ public class AttributesUtils implements Listener {
 
             return attribute.getDefaultValue();
         }
+        if (attribute == FantasyAttribute.WALKING_SPEED) {
+            try {
+
+                if (entity instanceof Player p) {
+                    return p.getWalkSpeed() - 0.8;
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+
+            return 1;
+        }
 
         return 0;
     }
@@ -45,6 +59,18 @@ public class AttributesUtils implements Listener {
                 ex.printStackTrace();
             }
         }
+
+        if (attribute == FantasyAttribute.WALKING_SPEED) {
+            try {
+
+                if (entity instanceof Player p) {
+                    p.setWalkSpeed((float)value);
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 
     public void resetAttribute(Entity entity, FantasyAttribute attribute) {
@@ -53,6 +79,18 @@ public class AttributesUtils implements Listener {
             try {
 
                 setAttribute(entity, attribute, attribute.getDefaultValue());
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
+
+        if (attribute == FantasyAttribute.WALKING_SPEED) {
+            try {
+
+                if (entity instanceof Player p) {
+                    p.setWalkSpeed((float)attribute.getDefaultValue());
+                }
 
             } catch (Exception ex) {
                 ex.printStackTrace();
@@ -72,6 +110,18 @@ public class AttributesUtils implements Listener {
                 ex.printStackTrace();
             }
         }
+
+        if (attribute == FantasyAttribute.WALKING_SPEED) {
+            try {
+
+                if (entity instanceof Player p) {
+                    p.setWalkSpeed(Math.max(0, (float)getAttribute(p, attribute) + (float)value));
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 
     public void subtractAttribute(Entity entity, FantasyAttribute attribute, double value) {
@@ -86,6 +136,18 @@ public class AttributesUtils implements Listener {
                 ex.printStackTrace();
             }
         }
+
+        if (attribute == FantasyAttribute.WALKING_SPEED) {
+            try {
+
+                if (entity instanceof Player p) {
+                    p.setWalkSpeed(Math.max(0, (float)getAttribute(p, attribute) - (float)value));
+                }
+
+            } catch (Exception ex) {
+                ex.printStackTrace();
+            }
+        }
     }
 
     @EventHandler
@@ -93,6 +155,7 @@ public class AttributesUtils implements Listener {
         Player p = e.getEntity();
 
         resetAttribute(p, FantasyAttribute.MOVE_SPEED);
+        resetAttribute(p, FantasyAttribute.WALKING_SPEED);
     }
 
 }

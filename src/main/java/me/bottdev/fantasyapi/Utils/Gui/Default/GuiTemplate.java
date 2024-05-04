@@ -11,6 +11,7 @@ import org.bukkit.event.inventory.ClickType;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scheduler.BukkitTask;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +29,8 @@ public class GuiTemplate {
     protected String id;
     protected String title;
     protected int size;
+
+    protected BukkitTask task;
 
     public GuiTemplate(Player p, Configuration cfg) {
 
@@ -60,13 +63,13 @@ public class GuiTemplate {
     protected void createInventory() {
         try {
 
-            gui = Bukkit.createInventory(null, size, plugin.utils.setColors(title));
+            gui = Bukkit.createInventory(null, size, FantasyAPI.utils.setColors(title));
             Update();
 
         } catch (Exception ex) {
             ex.printStackTrace();
 
-            gui = Bukkit.createInventory(null, 9, plugin.utils.setColors("&cError"));
+            gui = Bukkit.createInventory(null, 9, FantasyAPI.utils.setColors("&cError"));
         }
     }
 
@@ -115,13 +118,13 @@ public class GuiTemplate {
     }
 
     private void Runnable() {
-        new BukkitRunnable() {
+        task = new BukkitRunnable() {
 
             @Override
             public void run() {
                 try {
 
-                    if (p.isDead() || !p.isValid() || !p.isOnline()) {
+                    if (p.isDead() || !p.isValid() || !p.isOnline() || !guiManager.isOpen(p)) {
                         this.cancel();
                         return;
                     }
@@ -133,7 +136,11 @@ public class GuiTemplate {
                 }
             }
 
-        }.runTaskTimer(plugin, 0, 2);
+        }.runTaskTimerAsynchronously(plugin, 0, 2);
+    }
+
+    public BukkitTask getTask() {
+        return task;
     }
 
     public void Close() {

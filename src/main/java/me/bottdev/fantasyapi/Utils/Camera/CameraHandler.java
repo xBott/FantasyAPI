@@ -120,11 +120,11 @@ public class CameraHandler implements Listener {
     }
 
     public static Vector rotateVector(Location loc, CameraMoveDirection cameraMoveDirection) {
-        Vector direction = loc.getDirection();
         LocationTweaks locationTweaks = new LocationTweaks();
+        Vector direction = null;
         switch (cameraMoveDirection) {
-            case LEFT -> direction = locationTweaks.rotateVectorAroundY(direction, -90);
-            case RIGHT -> direction = locationTweaks.rotateVectorAroundY(direction, 90);
+            case LEFT -> direction = locationTweaks.getLeftHeadDirection(loc, 1);
+            case RIGHT -> direction = locationTweaks.getRightHeadDirection(loc, 1);
             case UP -> {
                 loc.setPitch(-90);
                 direction = loc.getDirection();
@@ -134,25 +134,25 @@ public class CameraHandler implements Listener {
                 direction = loc.getDirection();
             }
             case DIAGONAL_LEFT_RIGHT_UP -> {
-                direction = locationTweaks.rotateVectorAroundY(direction, 90);
+                direction = locationTweaks.getRightHeadDirection(loc, 1);
                 loc.setDirection(direction);
                 loc.setPitch(-45);
                 direction = loc.getDirection();
             }
             case DIAGONAL_LEFT_RIGHT_DOWN -> {
-                direction = locationTweaks.rotateVectorAroundY(direction, 90);
+                direction = locationTweaks.getRightHeadDirection(loc, 1);
                 loc.setDirection(direction);
                 loc.setPitch(45);
                 direction = loc.getDirection();
             }
             case DIAGONAL_RIGHT_LEFT_UP -> {
-                direction = locationTweaks.rotateVectorAroundY(direction, -90);
+                direction = locationTweaks.getLeftHeadDirection(loc, 1);
                 loc.setDirection(direction);
                 loc.setPitch(-45);
                 direction = loc.getDirection();
             }
             case DIAGONAL_RIGHT_LEFT_DOWN -> {
-                direction = locationTweaks.rotateVectorAroundY(direction, -90);
+                direction = locationTweaks.getLeftHeadDirection(loc, 1);
                 loc.setDirection(direction);
                 loc.setPitch(45);
                 direction = loc.getDirection();

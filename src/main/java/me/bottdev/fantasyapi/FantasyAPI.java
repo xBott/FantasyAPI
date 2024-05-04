@@ -4,6 +4,8 @@ import me.bottdev.fantasyapi.Utils.Attributes.AttributesUtils;
 import me.bottdev.fantasyapi.Utils.CooldownManager;
 import me.bottdev.fantasyapi.Utils.Gui.Default.GuiTemplateListener;
 import me.bottdev.fantasyapi.Utils.Gui.MultiPageGui.MPGuiListener;
+import me.bottdev.fantasyapi.Utils.Inventory.InventoryListener;
+import me.bottdev.fantasyapi.Utils.Player.PlayerOptionListener;
 import me.bottdev.fantasyapi.Utils.Sounds.SoundUtils;
 import me.bottdev.fantasyapi.Utils.Utils;
 import org.bukkit.command.ConsoleCommandSender;
@@ -33,6 +35,8 @@ public final class FantasyAPI extends JavaPlugin {
         getServer().getPluginManager().registerEvents(new AttributesUtils(), this);
         getServer().getPluginManager().registerEvents(new MPGuiListener(), this);
         getServer().getPluginManager().registerEvents(new GuiTemplateListener(), this);
+        getServer().getPluginManager().registerEvents(new InventoryListener(), this);
+        getServer().getPluginManager().registerEvents(new PlayerOptionListener(), this);
 
     }
 
